@@ -581,64 +581,33 @@
             gap: 15px;
         }
 
-        @media print {
-            body.printing-leader {
-                background: white !important;
-                padding: 0 !important;
-            }
+        .offline-indicator {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 12px;
+            background: #e2e8f0;
+            color: #475569;
+        }
 
-            body.printing-leader header,
-            body.printing-leader .controls,
-            body.printing-leader .tabs,
-            body.printing-leader #cardsTab,
-            body.printing-leader #gameplayTab,
-            body.printing-leader .selector-header-bar button,
-            body.printing-leader .selector-header-bar p {
-                display: none !important;
-            }
+        .offline-indicator.online {
+            background: #dcfce7;
+            color: #166534;
+        }
 
-            body.printing-leader #selectorTab {
-                display: block !important;
-            }
+        .offline-indicator.offline {
+            background: #fee2e2;
+            color: #991b1b;
+        }
 
-            body.printing-leader .selector-header-bar {
-                box-shadow: none !important;
-                background: white !important;
-                padding: 0 0 10px 0 !important;
-                margin-bottom: 10px !important;
-                border-bottom: 2px solid #000 !important;
-            }
-
-            body.printing-leader .selector-header-bar h3 {
-                font-size: 18px !important;
-                color: #000 !important;
-            }
-
-            body.printing-leader .feature-selector-grid {
-                display: grid !important;
-                grid-template-columns: repeat(3, 1fr) !important;
-                gap: 8px !important;
-                background: white !important;
-                padding: 0 !important;
-                box-shadow: none !important;
-            }
-
-            body.printing-leader .feature-checkbox-card {
-                border: 1px solid #000 !important;
-                background: #fff !important;
-                padding: 6px !important;
-                break-inside: avoid;
-                page-break-inside: avoid;
-            }
-
-            body.printing-leader .feature-checkbox-card:not(.selected) {
-                display: none !important;
-            }
-
-            body.printing-leader .feature-checkbox-card input[type="checkbox"],
-            body.printing-leader .game-status-pill {
-                display: none !important;
-            }
+        .offline-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
         }
 
         @media print {
@@ -781,14 +750,20 @@
             <h1 id="headerTitle">OS 1:25,000 Map Feature Bingo Generator</h1>
             <p class="subtitle" id="headerSubtitle">Select map features, capture grid references, and print bingo cards</p>
         </div>
-        <div class="map-selector-bar">
-            <label for="mapSelect">Active Map:</label>
-            <select id="mapSelect" onchange="switchMap(this.value)"></select>
-            <button onclick="openNewMapModal()">+ New Map</button>
-            <div class="map-action-btns">
-                <button class="secondary" onclick="exportCurrentMap()" title="Export current map as JSON">Export Map</button>
-                <button class="secondary" onclick="triggerImportMap()" title="Import map from JSON">Import Map</button>
-                <button class="danger" onclick="deleteCurrentMap()" id="deleteMapBtn" style="padding: 6px 10px;">Delete</button>
+        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+            <div id="offlineIndicator" class="offline-indicator online" title="Status of network connection">
+                <span class="offline-dot"></span>
+                <span id="offlineStatusText">Fully Offline Ready</span>
+            </div>
+            <div class="map-selector-bar">
+                <label for="mapSelect">Active Map:</label>
+                <select id="mapSelect" onchange="switchMap(this.value)"></select>
+                <button onclick="openNewMapModal()">+ New Map</button>
+                <div class="map-action-btns">
+                    <button class="secondary" onclick="exportCurrentMap()" title="Export current map as JSON">Export Map</button>
+                    <button class="secondary" onclick="triggerImportMap()" title="Import map from JSON">Import Map</button>
+                    <button class="danger" onclick="deleteCurrentMap()" id="deleteMapBtn" style="padding: 6px 10px;">Delete</button>
+                </div>
             </div>
         </div>
     </header>
@@ -1515,7 +1490,27 @@
             renderFeatureSelector();
             generateCards();
             updateGameplayView();
+            initOfflineDetector();
         };
+
+        function initOfflineDetector() {
+            const indicator = document.getElementById('offlineIndicator');
+            const statusText = document.getElementById('offlineStatusText');
+
+            function updateConnectionStatus() {
+                if (navigator.onLine) {
+                    indicator.className = 'offline-indicator online';
+                    statusText.innerText = 'Online / Fully Synced';
+                } else {
+                    indicator.className = 'offline-indicator offline';
+                    statusText.innerText = 'Offline Mode Active (Fully Functional)';
+                }
+            }
+
+            window.addEventListener('online', updateConnectionStatus);
+            window.addEventListener('offline', updateConnectionStatus);
+            updateConnectionStatus();
+        }
     </script>
 </body>
 </html>
