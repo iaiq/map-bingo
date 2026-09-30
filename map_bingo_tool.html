@@ -1,0 +1,1521 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OS 1:25,000 Map Feature Bingo Generator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Almendra:ital,wght@0,400;0,700;1,400&family=Grenze+Gotisch:wght@500;700&family=MedievalSharp&family=Pirata+One&family=UnifrakturMaguntia&family=Open+Sans:wght@0,400;0,600;0,700;0,800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --os-blue: #0072C6;
+            --os-magenta: #D80073;
+            --os-green: #008A00;
+            --os-brown: #8D4E2A;
+            --os-black: #111111;
+            --os-header-bg: #1b365d;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Open Sans', Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f0f2f5;
+            color: #333;
+            padding: 20px;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        header {
+            background-color: var(--os-header-bg);
+            color: white;
+            padding: 16px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        h1 {
+            font-size: 22px;
+            margin-bottom: 4px;
+        }
+
+        p.subtitle {
+            font-size: 13px;
+            opacity: 0.9;
+        }
+
+        .map-selector-bar {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px 15px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .map-selector-bar label {
+            color: white;
+            font-size: 13px;
+        }
+
+        .map-selector-bar select {
+            padding: 6px 10px;
+            border-radius: 4px;
+            border: none;
+            font-weight: bold;
+            background: white;
+            color: #333;
+            font-size: 13px;
+        }
+
+        .map-selector-bar button {
+            background: var(--os-magenta);
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        .map-action-btns {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .controls {
+            background: white;
+            padding: 14px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        label {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        input[type="number"], input[type="text"] {
+            padding: 6px 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        input[type="number"] { width: 75px; }
+
+        button {
+            background-color: var(--os-blue);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+
+        button:hover { background-color: #005a9e; }
+        button.secondary { background-color: #6c757d; }
+        button.secondary:hover { background-color: #5a6268; }
+        button.danger { background-color: #d9534f; }
+        button.danger:hover { background-color: #c9302c; }
+        button.success { background-color: var(--os-green); }
+        button.success:hover { background-color: #006b00; }
+        button:disabled { background-color: #a0a0a0; cursor: not-allowed; }
+
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .tab-btn { background: #e0e0e0; color: #333; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .tab-btn.active { background: var(--os-blue); color: white; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        .selector-header-bar {
+            background: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .counter-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .counter-badge.valid { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .counter-badge.invalid { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+
+        .feature-selector-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 12px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .feature-checkbox-card {
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            background: #fafafa;
+            user-select: none;
+            transition: all 0.15s ease;
+            position: relative;
+        }
+
+        .feature-checkbox-card.selected {
+            background: #e3f2fd;
+            border-color: var(--os-blue);
+        }
+
+        .feature-checkbox-card.shown-in-game {
+            background: #e8f5e9;
+            border-color: var(--os-green);
+        }
+
+        .game-status-pill {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: var(--os-green);
+            color: white;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 4px;
+            display: none;
+            text-transform: uppercase;
+        }
+
+        .feature-checkbox-card.shown-in-game .game-status-pill {
+            display: inline-block;
+        }
+
+        .feature-top-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+
+        .feature-checkbox-card .symbol-box {
+            width: 35px;
+            height: 35px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .feature-checkbox-card input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .grid-ref-input-container {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #333;
+            padding-top: 6px;
+            border-top: 1px dashed #ddd;
+        }
+
+        .grid-ref-input-container input {
+            flex-grow: 1;
+            padding: 3px 6px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            font-size: 11px;
+        }
+
+        .gameplay-container {
+            background: white;
+            padding: 30px 40px;
+            border-radius: 16px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+            max-width: 950px;
+            margin: 0 auto;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .gameplay-top-status-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f1f5f9;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 700;
+            color: #334155;
+        }
+
+        .gameplay-card {
+            background: #f8fafc;
+            border: 4px solid var(--os-header-bg);
+            border-radius: 16px;
+            padding: 45px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 25px;
+            box-shadow: inset 0 3px 6px rgba(0,0,0,0.04);
+            position: relative;
+        }
+
+        .gameplay-shown-badge {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 700;
+            display: none;
+        }
+
+        .gameplay-grid-ref-box {
+            background: #e3f2fd;
+            border: 3px dashed var(--os-blue);
+            border-radius: 12px;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 100%;
+        }
+
+        .gameplay-grid-ref-label {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--os-blue);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        .gameplay-grid-ref-value {
+            font-size: 144px;
+            font-weight: 900;
+            color: #111;
+            letter-spacing: 4px;
+            line-height: 1.1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .gameplay-grid-ref-linear-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: center;
+            width: 100%;
+        }
+
+        .gameplay-grid-ref-linear-value {
+            font-size: 100px;
+            font-weight: 900;
+            color: #111;
+            letter-spacing: 3px;
+            line-height: 1.1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .gameplay-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .gameplay-controls button {
+            padding: 16px 32px;
+            font-size: 18px;
+        }
+
+        .cards-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .print-page {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            background: #ffffff;
+            padding: 15px;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 800px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+            gap: 15px;
+        }
+
+        .bingo-card {
+            background: white;
+            width: 100%;
+            border: 2px solid #1b365d;
+            border-radius: 6px;
+            padding: 8px 10px;
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+        }
+
+        .card-header {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            border-bottom: 1.5px solid #1b365d;
+            padding-bottom: 4px;
+            margin-bottom: 4px;
+        }
+
+        .card-top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-title {
+            font-size: 13px;
+            font-weight: 800;
+            color: #1b365d;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .card-number {
+            font-size: 11px;
+            font-weight: 700;
+            background: #e3f2fd;
+            color: var(--os-blue);
+            padding: 2px 8px;
+            border-radius: 6px;
+            border: 1px solid #90caf9;
+        }
+
+        .scout-details {
+            display: flex;
+            gap: 15px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #222;
+        }
+
+        .scout-field {
+            display: flex;
+            align-items: flex-end;
+            flex: 1;
+            gap: 4px;
+        }
+
+        .scout-label {
+            white-space: nowrap;
+            color: #444;
+        }
+
+        .scout-line {
+            flex-grow: 1;
+            border-bottom: 1px solid #444;
+            height: 14px;
+        }
+
+        .bingo-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 4px;
+            height: 155px;
+        }
+
+        .cell {
+            border: 1px solid #888;
+            border-radius: 4px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2px 2px;
+            text-align: center;
+            background: #fff;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .symbol-box {
+            width: 100%;
+            height: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .symbol-box svg, .symbol-box img {
+            max-width: 90%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .feature-label {
+            font-size: 7.5px;
+            font-weight: 700;
+            color: #111;
+            line-height: 1.0;
+            margin-top: 2px;
+            white-space: normal;
+            word-wrap: break-word;
+            height: 45%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .symbol-box svg, .symbol-box img {
+            max-width: 90%;
+            max-height: 24px;
+            object-fit: contain;
+        }
+
+        .feature-label {
+            font-size: 7.5px;
+            font-weight: 700;
+            color: #111;
+            line-height: 1.0;
+            margin-top: 1px;
+            white-space: normal;
+            word-wrap: break-word;
+        }
+
+        .gothic-text {
+            font-family: 'Pirata One', 'UnifrakturMaguntia', cursive;
+            font-size: 15px;
+            color: #000;
+            letter-spacing: 0.3px;
+        }
+
+        .neo-gothic-text {
+            font-family: 'Almendra', 'Grenze Gotisch', Georgia, serif;
+            font-size: 16px;
+            color: #000;
+            letter-spacing: 0.3px;
+            font-weight: 700;
+        }
+
+        .old-english-text {
+            font-family: 'MedievalSharp', 'Pirata One', Georgia, serif;
+            font-size: 16px;
+            color: #000;
+            letter-spacing: 0.2px;
+            font-weight: normal;
+        }
+
+        .modal-backdrop {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            display: none;
+        }
+        .modal-backdrop.active { display: flex; }
+        .modal-content {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        @media print {
+            body.printing-leader {
+                background: white !important;
+                padding: 0 !important;
+            }
+
+            body.printing-leader header,
+            body.printing-leader .controls,
+            body.printing-leader .tabs,
+            body.printing-leader #cardsTab,
+            body.printing-leader #gameplayTab,
+            body.printing-leader .selector-header-bar button,
+            body.printing-leader .selector-header-bar p {
+                display: none !important;
+            }
+
+            body.printing-leader #selectorTab {
+                display: block !important;
+            }
+
+            body.printing-leader .selector-header-bar {
+                box-shadow: none !important;
+                background: white !important;
+                padding: 0 0 10px 0 !important;
+                margin-bottom: 10px !important;
+                border-bottom: 2px solid #000 !important;
+            }
+
+            body.printing-leader .selector-header-bar h3 {
+                font-size: 18px !important;
+                color: #000 !important;
+            }
+
+            body.printing-leader .feature-selector-grid {
+                display: grid !important;
+                grid-template-columns: repeat(3, 1fr) !important;
+                gap: 8px !important;
+                background: white !important;
+                padding: 0 !important;
+                box-shadow: none !important;
+            }
+
+            body.printing-leader .feature-checkbox-card {
+                border: 1px solid #000 !important;
+                background: #fff !important;
+                padding: 6px !important;
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+
+            body.printing-leader .feature-checkbox-card:not(.selected) {
+                display: none !important;
+            }
+
+            body.printing-leader .feature-checkbox-card input[type="checkbox"],
+            body.printing-leader .game-status-pill {
+                display: none !important;
+            }
+        }
+
+        @media print {
+            body:not(.printing-leader) {
+                background: white;
+                padding: 0;
+            }
+
+            body:not(.printing-leader) header, 
+            body:not(.printing-leader) .controls, 
+            body:not(.printing-leader) .tabs, 
+            body:not(.printing-leader) #selectorTab,
+            body:not(.printing-leader) #gameplayTab,
+            body:not(.printing-leader) #cardsTab {
+                display: none !important;
+            }
+
+            body:not(.printing-leader) #cardsTab {
+                display: block !important;
+            }
+
+            body:not(.printing-leader) .cards-container {
+                gap: 0;
+                display: block;
+            }
+
+            body:not(.printing-leader) .print-page {
+                background: white;
+                padding: 4mm 8mm;
+                margin: 0;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                width: 198mm;
+                height: 284mm;
+                page-break-after: always;
+                break-after: page;
+                box-shadow: none;
+                border-radius: 0;
+                box-sizing: border-box;
+            }
+
+            body:not(.printing-leader) .bingo-card {
+                border: 1.5px solid #000;
+                border-radius: 0;
+                padding: 4px 6px;
+                height: 86mm;
+                max-height: 86mm;
+                box-sizing: border-box;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                overflow: hidden;
+            }
+
+            body:not(.printing-leader) .card-header {
+                border-bottom: 1px solid #000;
+                padding-bottom: 2px;
+                margin-bottom: 2px;
+                gap: 2px;
+            }
+
+            body:not(.printing-leader) .card-title {
+                font-size: 11px;
+                color: #000;
+            }
+
+            body:not(.printing-leader) .card-number {
+                font-size: 9px;
+                padding: 0px 4px;
+                background: none;
+                border: 1px solid #000;
+                color: #000;
+            }
+
+            body:not(.printing-leader) .scout-details {
+                font-size: 9.5px;
+            }
+
+            body:not(.printing-leader) .scout-line {
+                border-bottom: 1px solid #000;
+                height: 10px;
+            }
+
+            body:not(.printing-leader) .bingo-grid {
+                display: grid;
+                grid-template-columns: repeat(6, 1fr);
+                grid-template-rows: repeat(3, 1fr);
+                gap: 2px;
+                height: 56mm;
+                max-height: 56mm;
+                box-sizing: border-box;
+            }
+
+            body:not(.printing-leader) .cell {
+                border: 1px solid #000;
+                padding: 1px;
+                border-radius: 0;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                box-sizing: border-box;
+                overflow: hidden;
+            }
+
+            body:not(.printing-leader) .symbol-box {
+                height: 52%;
+                max-height: 52%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            body:not(.printing-leader) .symbol-box svg, 
+            body:not(.printing-leader) .symbol-box img {
+                max-width: 90%;
+                max-height: 100%;
+                object-fit: contain;
+            }
+
+            body:not(.printing-leader) .feature-label {
+                font-size: 6.5px;
+                line-height: 0.9;
+                height: 42%;
+                margin-top: 1px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                text-align: center;
+                overflow: hidden;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div>
+            <h1 id="headerTitle">OS 1:25,000 Map Feature Bingo Generator</h1>
+            <p class="subtitle" id="headerSubtitle">Select map features, capture grid references, and print bingo cards</p>
+        </div>
+        <div class="map-selector-bar">
+            <label for="mapSelect">Active Map:</label>
+            <select id="mapSelect" onchange="switchMap(this.value)"></select>
+            <button onclick="openNewMapModal()">+ New Map</button>
+            <div class="map-action-btns">
+                <button class="secondary" onclick="exportCurrentMap()" title="Export current map as JSON">Export Map</button>
+                <button class="secondary" onclick="triggerImportMap()" title="Import map from JSON">Import Map</button>
+                <button class="danger" onclick="deleteCurrentMap()" id="deleteMapBtn" style="padding: 6px 10px;">Delete</button>
+            </div>
+        </div>
+    </header>
+
+    <input type="file" id="importFileinput" accept=".json" style="display: none;" onchange="handleMapImport(event)">
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('cardsTab', this)">Bingo Cards</button>
+        <button class="tab-btn" onclick="switchTab('selectorTab', this)">Manage Maps</button>
+        <button class="tab-btn" onclick="switchTab('gameplayTab', this)">Game Play (GM)</button>
+    </div>
+
+    <div id="cardsTab" class="tab-content active">
+        <div class="controls">
+            <div class="control-group">
+                <label for="cardCount">Total Cards:</label>
+                <input type="number" id="cardCount" value="42" min="3" max="120" step="3">
+            </div>
+            <button id="generateBtn" onclick="generateCards()">Regenerate Cards</button>
+            <button class="secondary" onclick="printBingoCards()">Print Bingo Cards</button>
+        </div>
+        <div id="cardsContainer" class="cards-container"></div>
+    </div>
+
+    <div id="selectorTab" class="tab-content">
+        <div class="selector-header-bar">
+            <div>
+                <h3 style="margin-bottom: 4px;" id="manageMapTitle">Map Features & Leader Call Sheet</h3>
+                <p style="font-size: 13px; color: #666;">Green highlighted cards indicate grid references already shown/called during the game.</p>
+            </div>
+            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                <div id="counterBadge" class="counter-badge valid">42 / 42 Selected</div>
+                <button class="secondary" onclick="selectAllFeatures(true)">Select All</button>
+                <button class="secondary" onclick="selectAllFeatures(false)">Clear All</button>
+                <button class="secondary" onclick="resetGameProgress()" style="background-color: var(--os-brown);">Reset Game Progress</button>
+                <button onclick="printLeaderSheet()">Print Leader Sheet</button>
+            </div>
+        </div>
+        <div id="featureSelectorGrid" class="feature-selector-grid"></div>
+    </div>
+
+    <div id="gameplayTab" class="tab-content">
+        <div class="gameplay-container">
+            <div class="gameplay-top-status-row">
+                <span id="gameplayProgressText">Feature 1 of 42</span>
+                <span id="gameplayShownCountText" style="color: var(--os-green);">0 Shown in Game</span>
+            </div>
+            <div class="gameplay-card">
+                <div class="gameplay-shown-badge" id="gameplayShownBadge">✓ Ref Called</div>
+                <div class="gameplay-grid-ref-box">
+                    <div class="gameplay-grid-ref-label">Grid Reference</div>
+                    <div class="gameplay-grid-ref-value" id="gameplayGridRef">--</div>
+                </div>
+            </div>
+            <div class="gameplay-controls">
+                <button class="secondary" id="prevFeatureBtn" onclick="changeGameplayIndex(-1)">Previous</button>
+                <button onclick="shuffleGameplayDeck()">Reshuffle Deck</button>
+                <button id="nextFeatureBtn" onclick="changeGameplayIndex(1)">Next Feature</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="newMapModal">
+        <div class="modal-content">
+            <h3>Create New Map</h3>
+            <p style="font-size: 13px; color: #666;">Enter a name for the new OS map area (e.g. "Peak District - Kinder Scout").</p>
+            <input type="text" id="newMapNameInput" placeholder="Map Name..." style="width: 100%; padding: 8px;">
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
+                <button class="secondary" onclick="closeNewMapModal()">Cancel</button>
+                <button onclick="createNewMap()">Create Map</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const features = [
+            // Point features
+            { id: "post_office", name: "Post Office", render: () => `<span style="font-size:26px; font-weight:bold; color:#000;">PO</span>` },
+            { id: "public_telephone", name: "Public Telephone", render: () => `<svg viewBox="0 0 60 60"><g transform="rotate(-60 30 30)"><circle cx="17" cy="38" r="7" fill="#000"/><circle cx="43" cy="38" r="7" fill="#000"/><path d="M17,38 C17,30 43,30 43,38" fill="none" stroke="#000" stroke-width="7" stroke-linecap="round"/></g></svg>` },
+            { id: "emergency_telephone", name: "Emergency Telephone", defaultSelected: false, render: () => `<svg viewBox="0 0 60 60"><g transform="rotate(-60 30 30)"><circle cx="17" cy="38" r="7" fill="#D80073"/><circle cx="43" cy="38" r="7" fill="#D80073"/><path d="M17,38 C17,30 43,30 43,38" fill="none" stroke="#D80073" stroke-width="7" stroke-linecap="round"/></g></svg>` },
+            { id: "youth_hostel", name: "Youth Hostel", render: () => `<svg viewBox="0 0 60 60"><polygon points="30,10 10,48 50,48" fill="#D80073" stroke="#000" stroke-width="2"/></svg>` },
+            { id: "church_with_tower", name: "Church (with tower)", render: () => `<svg viewBox="0 0 60 60"><rect x="18" y="26" width="24" height="24" fill="#000"/><path d="M30,8 V26 M21,17 H39" stroke="#000" stroke-width="4"/></svg>` },
+            { id: "footbridge", name: "Footbridge", render: () => `<span style="font-size:26px; font-weight:bold; color:#000;">FB</span>` },
+            { id: "railway_station", name: "Railway Station", render: () => `<svg viewBox="0 0 60 60"><line x1="5" y1="30" x2="55" y2="30" stroke="#000" stroke-width="4"/><circle cx="30" cy="30" r="8" fill="#D80073"/></svg>` },
+            { id: "golf_course", name: "Golf Course", render: () => `<svg viewBox="0 0 60 60"><line x1="18" y1="12" x2="18" y2="48" stroke="#0072C6" stroke-width="3"/><polygon points="18,12 42,20 18,28" fill="#0072C6"/></svg>` },
+            { id: "public_house", name: "Public House", render: () => `<svg viewBox="0 0 60 60"><rect x="18" y="20" width="20" height="26" fill="none" stroke="#0072C6" stroke-width="3"/><rect x="18" y="30" width="20" height="16" fill="#0072C6"/><path d="M38,24 C46,24 46,42 38,42" fill="none" stroke="#0072C6" stroke-width="3"/></svg>` },
+            { id: "fishing", name: "Fishing", render: () => `<svg viewBox="0 0 60 60"><path d="M12,38 C12,30 20,28 28,33 C34,36 39,28 43,18 L53,8 C49,15 49,17 55,22 L45,21 C39,30 34,46 22,46 C15,46 12,42 12,38 Z" fill="#0072C6"/><path d="M28,32 C30,22 37,22 36,28 Z" fill="#0072C6"/><path d="M22,40 C20,44 26,44 25,39 Z" fill="#0072C6"/><circle cx="16" cy="38" r="1.5" fill="#fff"/></svg>` },
+            { id: "other_tourist_feature", name: "Other Tourist Feature", render: () => `<svg viewBox="0 0 60 60"><polygon points="30,8 36,23 52,23 39,32 44,48 30,38 16,48 21,32 8,23 24,23" fill="none" stroke="#0072C6" stroke-width="3"/></svg>` },
+            { id: "nature_reserve", name: "Nature Reserve", render: () => `<svg viewBox="0 0 60 60"><path d="M16,19 L8,20 L16,23 C14,28 14,35 24,40 C34,44 44,42 48,34 C52,28 54,26 52,26 C46,28 38,26 30,24 C28,20 26,14 22,14 C18,14 16,16 16,19 Z" fill="#0072C6"/><path d="M25,39 L23,50 M35,38 L33,50" stroke="#0072C6" stroke-width="2.5" stroke-linecap="round" fill="none"/></svg>` },
+            { id: "english_heritage", name: "English Heritage", render: () => `<svg viewBox="0 0 60 60"><rect x="8" y="8" width="44" height="44" rx="4" fill="#0072C6"/><path d="M18,18 V13 H22 V18 H28 V13 H32 V18 H38 V13 H42 V18 H47 V22 H42 V28 H47 V32 H42 V38 H47 V42 H42 V47 H38 V42 H32 V47 H28 V42 H22 V47 H18 V42 H13 V38 H18 V32 H13 V28 H18 V22 H13 V18 H18 Z M24,24 H36 V36 H24 Z" fill="#fff" fill-rule="evenodd"/></svg>` },
+            { id: "chapel", name: "Chapel", render: () => `<svg viewBox="0 0 60 60"><path d="M30,15 V45 M15,30 H45" stroke="#000" stroke-width="5"/></svg>` },
+            { id: "church_with_spire", name: "Church (with Spire)", render: () => `<svg viewBox="0 0 60 60"><circle cx="30" cy="38" r="9" fill="#000"/><path d="M30,10 V29 M21,18 H39" stroke="#000" stroke-width="4"/></svg>` },
+            { id: "wind_turbine", name: "Wind Turbine", render: () => `<svg viewBox="0 0 60 60"><polygon points="28,52 32,52 30.8,26 29.2,26" fill="#000"/><line x1="30" y1="26" x2="21" y2="10.4" stroke="#000" stroke-width="2.5" stroke-linecap="round"/><line x1="30" y1="26" x2="48" y2="26" stroke="#000" stroke-width="2.5" stroke-linecap="round"/><line x1="30" y1="26" x2="21" y2="41.6" stroke="#000" stroke-width="2.5" stroke-linecap="round"/><circle cx="30" cy="26" r="3.5" fill="#000"/></svg>` },
+            { id: "triangulation_pillar", name: "Triangulation Pillar", render: () => `<svg viewBox="0 0 60 60"><polygon points="30,12 10,48 50,48" fill="none" stroke="#0072C6" stroke-width="3"/><circle cx="30" cy="34" r="4" fill="#0072C6"/></svg>` },
+            { id: "cairn", name: "Cairn", render: () => `<span class="old-english-text" style="font-size:24px;">Cairn</span>` },
+            { id: "slope", name: "Slope", render: () => `<svg viewBox="0 0 60 60"><g fill="#000"><polygon points="9.25,18 12.75,18 11.5,42 10.5,42"/><polygon points="16.75,18 20.25,18 19,42 18,42"/><polygon points="24.25,18 27.75,18 26.5,42 25.5,42"/><polygon points="31.75,18 35.25,18 34,42 33,42"/><polygon points="39.25,18 42.75,18 41.5,42 40.5,42"/><polygon points="46.75,18 50.25,18 49,42 48,42"/></g></svg>` },
+            { id: "tunnel", name: "Tunnel", render: () => `<svg viewBox="0 0 60 60"><line x1="10" y1="22" x2="50" y2="22" stroke="#000" stroke-width="2" stroke-dasharray="6,4"/><line x1="10" y1="38" x2="50" y2="38" stroke="#000" stroke-width="2" stroke-dasharray="6,4"/><path d="M10,16 V44 M50,16 V44" stroke="#000" stroke-width="4"/></svg>` },
+            { id: "coniferous_wood", name: "Coniferous Wood", render: () => `<svg viewBox="0 0 60 60"><rect x="10" y="10" width="40" height="40" fill="#D2EBCD"/><line x1="30" y1="12" x2="30" y2="48" stroke="#006600" stroke-width="2.5" stroke-linecap="round"/><polyline points="19,26 30,16 41,26" fill="none" stroke="#006600" stroke-width="2.5" stroke-linejoin="round"/><polyline points="15,38 30,24 45,38" fill="none" stroke="#006600" stroke-width="2.5" stroke-linejoin="round"/></svg>` },
+            { id: "non_coniferous_wood", name: "Non-Coniferous Wood", render: () => `<svg viewBox="0 0 60 60"><rect x="10" y="10" width="40" height="40" fill="#D2EBCD"/><path d="M22,39 C14,39 12,30 16,24 C11,18 17,11 25,13 C29,8 37,8 41,13 C49,11 51,18 46,24 C50,30 48,39 40,39 Z" fill="none" stroke="#006600" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/><line x1="30" y1="39" x2="30" y2="48" stroke="#006600" stroke-width="2.5" stroke-linecap="round"/></svg>` },
+            { id: "water", name: "Water", render: () => `<svg viewBox="0 0 60 60"><rect x="10" y="10" width="40" height="40" fill="#B5E3F8"/></svg>` },
+            { id: "island", name: "Island", render: () => `<svg viewBox="0 0 60 60"><rect x="10" y="10" width="40" height="40" fill="#B5E3F8"/><path d="M18,30 Q25,20 40,23 Q46,31 38,40 Q22,44 18,30 Z" fill="#fff" stroke="#0072C6" stroke-width="2"/></svg>` },
+            { id: "mast", name: "Mast", render: () => `<svg viewBox="0 0 60 60"><polygon points="30,12 24,50 36,50" fill="none" stroke="#000" stroke-width="2"/><path d="M30,12 L22,7 L24,12 L10,10" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M30,12 L38,7 L36,12 L50,10" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>` },
+            { id: "bunk_house", name: "Bunk House or Camping Barn", render: () => `<svg viewBox="0 0 60 60"><rect x="15" y="15" width="30" height="30" fill="#D80073" stroke="#000" stroke-width="2"/></svg>` },
+            { id: "clubhouse", name: "Clubhouse", render: () => `<span style="font-size:24px; font-weight:bold; color:#000;">CH</span>` },
+            { id: "well", name: "Well", render: () => `<span style="font-size:28px; font-weight:normal; color:#0072C6;">W</span>` },
+            { id: "spring", name: "Spring", render: () => `<span style="font-size:26px; font-weight:normal; color:#0072C6;">Spr</span>` },
+            { id: "craft_centre", name: "Craft Centre", render: () => `<svg viewBox="0 0 60 60"><circle cx="41" cy="22" r="13" fill="none" stroke="#0072C6" stroke-width="2"/><circle cx="41" cy="22" r="2.5" fill="#0072C6"/><line x1="41" y1="9" x2="41" y2="35" stroke="#0072C6" stroke-width="1.2"/><line x1="28" y1="22" x2="54" y2="22" stroke="#0072C6" stroke-width="1.2"/><line x1="32" y1="13" x2="50" y2="31" stroke="#0072C6" stroke-width="1.2"/><line x1="32" y1="31" x2="50" y2="13" stroke="#0072C6" stroke-width="1.2"/><line x1="13" y1="36" x2="45" y2="30" stroke="#0072C6" stroke-width="3" stroke-linecap="round"/><line x1="16" y1="36" x2="16" y2="21" stroke="#0072C6" stroke-width="2" stroke-linecap="round"/><line x1="22" y1="35" x2="22" y2="23" stroke="#0072C6" stroke-width="2" stroke-linecap="round"/><rect x="14" y="22" width="10" height="3" fill="#0072C6" rx="1"/><line x1="10" y1="23.5" x2="14" y2="23.5" stroke="#0072C6" stroke-width="1.5"/><line x1="16" y1="36" x2="11" y2="51" stroke="#0072C6" stroke-width="2" stroke-linecap="round"/><line x1="22" y1="35" x2="20" y2="51" stroke="#0072C6" stroke-width="2" stroke-linecap="round"/><line x1="40" y1="31" x2="46" y2="51" stroke="#0072C6" stroke-width="2" stroke-linecap="round"/><line x1="19" y1="22" x2="41" y2="9" stroke="#0072C6" stroke-width="1" stroke-dasharray="2,2"/><line x1="19" y1="25" x2="41" y2="35" stroke="#0072C6" stroke-width="1" stroke-dasharray="2,2"/><line x1="10" y1="51" x2="26" y2="51" stroke="#0072C6" stroke-width="2.5" stroke-linecap="round"/><line x1="22" y1="51" x2="41" y2="25" stroke="#0072C6" stroke-width="1.2" stroke-linecap="round"/></svg>` },
+            { id: "picnic_site", name: "Picnic Site", render: () => `<svg viewBox="0 0 60 60"><line x1="18" y1="20" x2="42" y2="44" stroke="#0072C6" stroke-width="3.5" stroke-linecap="round"/><line x1="42" y1="20" x2="18" y2="44" stroke="#0072C6" stroke-width="3.5" stroke-linecap="round"/><line x1="18" y1="20" x2="42" y2="20" stroke="#0072C6" stroke-width="3.5" stroke-linecap="round"/></svg>` },
+            { id: "tumulus", name: "Tumulus", render: () => `<span class="old-english-text" style="font-size:24px;">Tumulus</span>` },
+            { id: "telephone_exchange", name: "Telephone Exchange", render: () => `<span style="font-family:'Open Sans', Arial, sans-serif; font-size:20px; font-weight:bold; color:#000; line-height:1.1; display:inline-block; text-align:center;">Tel<br>Ex</span>` },
+            { id: "wind_pump", name: "Wind Pump", render: () => `<svg viewBox="0 0 60 60"><line x1="18" y1="48" x2="42" y2="48" stroke="#000" stroke-width="3" stroke-linecap="round"/><line x1="30" y1="20" x2="30" y2="48" stroke="#000" stroke-width="3"/><line x1="20" y1="10" x2="40" y2="30" stroke="#000" stroke-width="3" stroke-linecap="round"/><line x1="20" y1="30" x2="40" y2="10" stroke="#000" stroke-width="3" stroke-linecap="round"/></svg>` },
+            { id: "weirs", name: "Weirs", render: () => `<span style="font-size:22px; font-weight:normal; color:#000;">Weirs</span>` },
+            { id: "boundary_stone", name: "Boundary Stone", render: () => `<span style="font-size:24px; font-weight:bold; color:#000;">BS</span>` },
+            { id: "mile_post", name: "Mile Post", render: () => `<span style="font-size:24px; font-weight:bold; color:#000;">MP</span>` },
+            { id: "waterfall", name: "Waterfall", render: () => `<span style="font-size:20px; font-weight:normal; color:#0072C6;">Waterfall</span>` },
+            { id: "hotel", name: "Hotel", render: () => `<span style="font-size:22px; font-weight:bold; color:#000;">Hotel</span>` },
+            { id: "moat", name: "Moat", render: () => `<span class="old-english-text" style="font-size:24px;">Moat</span>` },
+            { id: "stone_circle", name: "Stone Circle", render: () => `<span class="old-english-text" style="font-size:20px;">Stone Circle</span>` },
+            { id: "marsh", name: "Marsh", render: () => `<svg viewBox="0 0 60 60"><line x1="20" y1="42" x2="40" y2="42" stroke="#0072C6" stroke-width="3" stroke-linecap="round"/><line x1="26" y1="26" x2="34" y2="26" stroke="#0072C6" stroke-width="3" stroke-linecap="round"/><line x1="3" y1="26" x2="23" y2="26" stroke="#0072C6" stroke-width="3" stroke-linecap="round"/><line x1="37" y1="26" x2="57" y2="26" stroke="#0072C6" stroke-width="3" stroke-linecap="round"/></svg>` },
+            { id: "cattle_grid", name: "Cattle Grid", render: () => `<span style="font-size:24px; font-weight:bold; color:#000;">CG</span>` },
+            
+            { id: "castle", name: "Castle", defaultSelected: false, render: () => `<svg viewBox="0 0 60 60"><path d="M12,48 V14 H18 V18 H24 V14 H30 V24 H36 V28 H42 V24 H48 V48 Z" fill="#0072C6"/><path d="M17,48 V36 A4,4 0 0,1 25,36 V48 Z" fill="#fff"/></svg>` },
+            { id: "public_toilets", name: "Public Toilets", defaultSelected: false, render: () => `<svg viewBox="0 0 60 60"><rect x="8" y="8" width="44" height="44" rx="4" fill="#0072C6"/><circle cx="22" cy="18" r="3.5" fill="#fff"/><rect x="17.5" y="23" width="9" height="12" rx="1.5" fill="#fff"/><rect x="18.5" y="34" width="3" height="10" fill="#fff"/><rect x="22.5" y="34" width="3" height="10" fill="#fff"/><circle cx="38" cy="18" r="3.5" fill="#fff"/><polygon points="38,23 32,35 44,35" fill="#fff"/><rect x="34.5" y="35" width="2.5" height="9" fill="#fff"/><rect x="39" y="35" width="2.5" height="9" fill="#fff"/></svg>` },
+            { id: "national_trust", name: "National Trust", defaultSelected: false, render: () => `<svg viewBox="0 0 60 60"><rect x="10" y="10" width="40" height="40" fill="#0072C6"/><path d="M30,14 C28,17 24,17 25,21 C22,21 21,25 24,27 C20,29 21,33 24,35 C23,38 26,41 29,41 L29,46 H31 L31,41 C34,41 37,38 36,35 C39,33 40,29 36,27 C39,25 38,21 35,21 C36,17 32,17 30,14 Z" fill="#fff"/><path d="M30,19 V40" stroke="#0072C6" stroke-width="1.5" stroke-linecap="round"/></svg>` },
+            { id: "cliff", name: "Cliff", defaultSelected: false, render: () => `<svg viewBox="0 0 60 60"><path d="M10,20 Q30,15 50,22" stroke="#8D4E2A" stroke-width="3" fill="none"/><path d="M12,20 L10,38 M20,18 L19,40 M28,17 L27,36 M36,18 L35,42 M44,20 L43,38" stroke="#8D4E2A" stroke-width="2"/></svg>` },
+            { id: "parking", name: "Parking", defaultSelected: false, render: () => `<svg viewBox="0 0 60 60"><rect x="12" y="12" width="36" height="36" rx="4" fill="#0072C6"/><text x="30" y="38" text-anchor="middle" fill="#fff" font-size="28" font-weight="bold" font-family="sans-serif">P</text></svg>` },
+            { id: "information_centre", name: "Information Centre", defaultSelected: false, render: () => `<svg viewBox="0 0 60 60"><rect x="12" y="12" width="36" height="36" rx="4" fill="#0072C6"/><text x="30" y="38" text-anchor="middle" fill="#fff" font-size="26" font-weight="bold" font-style="italic" font-family="serif">i</text></svg>` },
+            { id: "bus_station", name: "Bus Station", defaultSelected: false, render: () => `<svg viewBox="0 0 60 60"><rect x="12" y="22" width="36" height="16" fill="#D80073"/><circle cx="30" cy="30" r="12" fill="#D80073"/></svg>` },
+            { id: "windmill", name: "Windmill", defaultSelected: false, render: () => `<svg viewBox="0 0 60 60"><path d="M20,32 V52 H40 V32" fill="none" stroke="#000" stroke-width="2.5"/><line x1="8" y1="8" x2="52" y2="36" stroke="#000" stroke-width="4" stroke-linecap="round"/><line x1="8" y1="36" x2="52" y2="8" stroke="#000" stroke-width="4" stroke-linecap="round"/></svg>` },
+            { id: "scree", name: "Scree", defaultSelected: false, render: () => `<svg viewBox="0 0 60 60"><polygon points="12,20 16,18 15,22" fill="#8D4E2A"/><polygon points="28,15 32,13 30,17" fill="#8D4E2A"/><polygon points="42,22 46,19 44,24" fill="#8D4E2A"/><polygon points="20,32 23,28 22,34" fill="#8D4E2A"/><polygon points="36,35 40,32 38,38" fill="#8D4E2A"/><polygon points="15,44 19,42 17,46" fill="#8D4E2A"/><polygon points="45,45 49,42 47,48" fill="#8D4E2A"/></svg>` },
+            { id: "outcrop", name: "Outcrop", defaultSelected: false, render: () => `<svg viewBox="0 0 60 60"><path d="M12,28 Q22,18 35,22 Q48,25 48,35 Q40,44 25,40 Q10,42 12,28 Z" fill="none" stroke="#8D4E2A" stroke-width="2.5"/><path d="M18,26 Q28,24 38,28" fill="none" stroke="#8D4E2A" stroke-width="1.5"/></svg>` },
+            { id: "loose_rock", name: "Loose Rock", defaultSelected: false, render: () => `<svg viewBox="0 0 60 60"><circle cx="16" cy="20" r="3" fill="#8D4E2A"/><circle cx="34" cy="16" r="2.5" fill="#8D4E2A"/><circle cx="46" cy="28" r="3.5" fill="#8D4E2A"/><circle cx="22" cy="36" r="3" fill="#8D4E2A"/><circle cx="38" cy="42" r="2" fill="#8D4E2A"/><circle cx="14" cy="46" r="2.5" fill="#8D4E2A"/></svg>` },
+            { id: "boulders", name: "Boulders", defaultSelected: false, render: () => `<svg viewBox="0 0 60 60"><path d="M12,22 Q18,16 24,20 Q28,26 20,30 Q12,28 12,22 Z" fill="#8D4E2A"/><path d="M36,18 Q44,14 48,22 Q46,30 38,28 Q32,24 36,18 Z" fill="#8D4E2A"/><path d="M22,38 Q32,32 40,38 Q38,48 28,46 Q18,44 22,38 Z" fill="#8D4E2A"/></svg>` },
+            { id: "fire_station", name: "Fire Station", defaultSelected: false, render: () => `<span style="font-family:'Open Sans', Arial, sans-serif; font-size:22px; font-weight:bold; color:#000;">F Sta</span>` },
+            { id: "police_station", name: "Police Station", defaultSelected: false, render: () => `<span style="font-family:'Open Sans', Arial, sans-serif; font-size:22px; font-weight:bold; color:#000;">Pol Sta</span>` },
+            { id: "town_hall", name: "Town Hall", defaultSelected: false, render: () => `<span style="font-family:'Open Sans', Arial, sans-serif; font-size:24px; font-weight:bold; color:#000;">TH</span>` },
+            { id: "reservoir", name: "Reservoir", defaultSelected: false, render: () => `<span style="font-family:'Open Sans', Arial, sans-serif; font-size:22px; font-weight:bold; color:#0072C6;">Resr</span>` },
+            { id: "school", name: "School", defaultSelected: false, render: () => `<span style="font-family:'Open Sans', Arial, sans-serif; font-size:24px; font-weight:bold; color:#000;">Sch</span>` },
+            { id: "works", name: "Works", defaultSelected: false, render: () => `<span style="font-family:'Open Sans', Arial, sans-serif; font-size:24px; font-weight:bold; color:#000;">Wks</span>` },
+            { id: "market", name: "Market", defaultSelected: false, render: () => `<span style="font-family:'Open Sans', Arial, sans-serif; font-size:24px; font-weight:bold; color:#000;">Mkt</span>` },
+            { id: "industrial_estate", name: "Industrial Estate", defaultSelected: false, render: () => `<span style="font-family:'Open Sans', Arial, sans-serif; font-size:18px; font-weight:bold; color:#000;">Ind Est</span>` },
+
+            // Linear features (require 2 grid references)
+            { id: "road", name: "Road / Track", isLinear: true, defaultSelected: false, render: () => `<svg viewBox="0 0 60 60"><line x1="10" y1="15" x2="50" y2="45" stroke="#D80073" stroke-width="5" stroke-linecap="round"/><line x1="10" y1="15" x2="50" y2="45" stroke="#fff" stroke-width="2" stroke-dasharray="4,4"/></svg>` },
+            { id: "river", name: "River / Stream", isLinear: true, defaultSelected: false, render: () => `<svg viewBox="0 0 60 60"><path d="M10,20 Q20,10 30,30 Q40,50 50,40" fill="none" stroke="#0072C6" stroke-width="4" stroke-linecap="round"/></svg>` },
+            { id: "ridge", name: "Ridge / Spur", isLinear: true, defaultSelected: false, render: () => `<svg viewBox="0 0 60 60"><path d="M10,45 Q30,10 50,45" fill="none" stroke="#8D4E2A" stroke-width="4" stroke-linecap="round"/><path d="M20,38 Q30,22 40,38" fill="none" stroke="#8D4E2A" stroke-width="2" stroke-dasharray="3,3"/></svg>` },
+            { id: "valley", name: "Valley / Combe", isLinear: true, defaultSelected: false, render: () => `<svg viewBox="0 0 60 60"><path d="M10,15 Q30,50 50,15" fill="none" stroke="#8D4E2A" stroke-width="4" stroke-linecap="round"/><path d="M20,22 Q30,38 40,22" fill="none" stroke="#8D4E2A" stroke-width="2" stroke-dasharray="3,3"/></svg>` },
+            { id: "power_line", name: "Power Line", isLinear: true, defaultSelected: false, render: () => `<svg viewBox="0 0 60 60"><line x1="10" y1="30" x2="50" y2="30" stroke="#000" stroke-width="2.5"/><line x1="20" y1="15" x2="20" y2="45" stroke="#000" stroke-width="2"/><line x1="40" y1="15" x2="40" y2="45" stroke="#000" stroke-width="2"/></svg>` },
+            { id: "fence_wall", name: "Fence / Wall", isLinear: true, defaultSelected: false, render: () => `<svg viewBox="0 0 60 60"><line x1="10" y1="30" x2="50" y2="30" stroke="#000" stroke-width="4"/><line x1="20" y1="20" x2="20" y2="40" stroke="#000" stroke-width="3"/><line x1="30" y1="20" x2="30" y2="40" stroke="#000" stroke-width="3"/><line x1="40" y1="20" x2="40" y2="40" stroke="#000" stroke-width="3"/></svg>` }
+        ];
+
+        let mapsData = {};
+        let currentMapId = 'default_map';
+        let gameplayIndex = 0;
+        let randomizedGameplayPool = [];
+
+        function initDefaultMaps() {
+            try {
+                const saved = localStorage.getItem('os_bingo_multi_maps');
+                if (saved) {
+                    mapsData = JSON.parse(saved);
+                }
+            } catch (e) {
+                console.error("Error loading maps", e);
+            }
+
+            if (!mapsData || Object.keys(mapsData).length === 0) {
+                const defaultActive = features.filter(f => f.defaultSelected !== false).map(f => f.id);
+                mapsData = {
+                    'default_map': {
+                        name: 'Default Map (Area 1)',
+                        activeFeatureIds: defaultActive,
+                        gridReferences: {},
+                        gridReferencesEnd: {},
+                        revealedFeatureIds: []
+                    }
+                };
+                currentMapId = 'default_map';
+                saveMaps();
+            } else {
+                currentMapId = Object.keys(mapsData)[0];
+            }
+        }
+
+        function saveMaps() {
+            try {
+                localStorage.setItem('os_bingo_multi_maps', JSON.stringify(mapsData));
+            } catch (e) {
+                console.error("Error saving maps", e);
+            }
+        }
+
+        function getCurrentMap() {
+            if (!mapsData[currentMapId]) {
+                currentMapId = Object.keys(mapsData)[0];
+            }
+            if (!mapsData[currentMapId].revealedFeatureIds) {
+                mapsData[currentMapId].revealedFeatureIds = [];
+            }
+            if (!mapsData[currentMapId].gridReferences) {
+                mapsData[currentMapId].gridReferences = {};
+            }
+            if (!mapsData[currentMapId].gridReferencesEnd) {
+                mapsData[currentMapId].gridReferencesEnd = {};
+            }
+            return mapsData[currentMapId];
+        }
+
+        function updateMapSelectorDropdown() {
+            const select = document.getElementById('mapSelect');
+            select.innerHTML = '';
+            for (const id in mapsData) {
+                const opt = document.createElement('option');
+                opt.value = id;
+                opt.innerText = mapsData[id].name;
+                if (id === currentMapId) opt.selected = true;
+                select.appendChild(opt);
+            }
+
+            const deleteBtn = document.getElementById('deleteMapBtn');
+            if (Object.keys(mapsData).length <= 1) {
+                deleteBtn.style.display = 'none';
+            } else {
+                deleteBtn.style.display = 'inline-block';
+            }
+
+            const currentMap = getCurrentMap();
+            document.getElementById('headerSubtitle').innerText = `Active Map: ${currentMap.name}`;
+            document.getElementById('manageMapTitle').innerText = `${currentMap.name} - Features & Grid References`;
+        }
+
+        function switchMap(mapId) {
+            if (mapsData[mapId]) {
+                currentMapId = mapId;
+                gameplayIndex = 0;
+                randomizedGameplayPool = [];
+                updateMapSelectorDropdown();
+                renderFeatureSelector();
+                generateCards();
+                updateGameplayView();
+            }
+        }
+
+        function openNewMapModal() {
+            document.getElementById('newMapNameInput').value = '';
+            document.getElementById('newMapModal').classList.add('active');
+            setTimeout(() => document.getElementById('newMapNameInput').focus(), 50);
+        }
+
+        function closeNewMapModal() {
+            document.getElementById('newMapModal').classList.remove('active');
+        }
+
+        function createNewMap() {
+            const nameInput = document.getElementById('newMapNameInput');
+            const name = nameInput.value.trim() || `Map Area ${Object.keys(mapsData).length + 1}`;
+            const newId = 'map_' + Date.now();
+
+            const defaultActive = features.filter(f => f.defaultSelected !== false).map(f => f.id);
+            mapsData[newId] = {
+                name: name,
+                activeFeatureIds: defaultActive,
+                gridReferences: {},
+                revealedFeatureIds: []
+            };
+
+            saveMaps();
+            closeNewMapModal();
+            switchMap(newId);
+        }
+
+        function deleteCurrentMap() {
+            if (Object.keys(mapsData).length <= 1) return;
+            const currentMap = getCurrentMap();
+            if (confirm(`Are you sure you want to delete "${currentMap.name}"?`)) {
+                delete mapsData[currentMapId];
+                currentMapId = Object.keys(mapsData)[0];
+                saveMaps();
+                updateMapSelectorDropdown();
+                renderFeatureSelector();
+                generateCards();
+                updateGameplayView();
+            }
+        }
+
+        function exportCurrentMap() {
+            const currentMap = getCurrentMap();
+            const exportData = {
+                version: "1.0",
+                type: "os_bingo_map_config",
+                map: currentMap
+            };
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportData, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `${currentMap.name.toLowerCase().replace(/[^a-z0-9]/g, '_')}_bingo_config.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        function triggerImportMap() {
+            document.getElementById('importFileinput').value = '';
+            document.getElementById('importFileinput').click();
+        }
+
+        function handleMapImport(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const parsed = JSON.parse(e.target.result);
+                    let mapObj = null;
+
+                    if (parsed && parsed.type === "os_bingo_map_config" && parsed.map) {
+                        mapObj = parsed.map;
+                    } else if (parsed && parsed.name && Array.isArray(parsed.activeFeatureIds)) {
+                        mapObj = parsed;
+                    } else if (parsed && typeof parsed === 'object') {
+                        const keys = Object.keys(parsed);
+                        if (keys.length > 0 && parsed[keys[0]].name) {
+                            mapObj = parsed[keys[0]];
+                        }
+                    }
+
+                    if (!mapObj || !mapObj.name) {
+                        alert("Invalid map configuration JSON file.");
+                        return;
+                    }
+
+                    const newId = 'map_' + Date.now();
+                    mapsData[newId] = {
+                        name: mapObj.name + " (Imported)",
+                        activeFeatureIds: Array.isArray(mapObj.activeFeatureIds) ? mapObj.activeFeatureIds : features.map(f => f.id),
+                        gridReferences: (mapObj.gridReferences && typeof mapObj.gridReferences === 'object') ? mapObj.gridReferences : {},
+                        gridReferencesEnd: (mapObj.gridReferencesEnd && typeof mapObj.gridReferencesEnd === 'object') ? mapObj.gridReferencesEnd : {},
+                        revealedFeatureIds: Array.isArray(mapObj.revealedFeatureIds) ? mapObj.revealedFeatureIds : []
+                    };
+
+                    saveMaps();
+                    switchMap(newId);
+                } catch (err) {
+                    console.error(err);
+                    alert("Error parsing JSON file. Please ensure it is a valid map configuration.");
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function shuffle(array, seed = Date.now()) {
+            let m = array.length, t, i;
+            let rand = function() {
+                let x = Math.sin(seed++) * 10000;
+                return x - Math.floor(x);
+            };
+            let copy = [...array];
+            while (m) {
+                i = Math.floor(rand() * m--);
+                t = copy[m];
+                copy[m] = copy[i];
+                copy[i] = t;
+            }
+            return copy;
+        }
+
+        function getSymbolHTML(feature) {
+            const imageFormats = ['png', 'jpg', 'jpeg', 'svg', 'webp'];
+            const containerId = `symbol-${feature.id}-${Math.random().toString(36).substr(2, 9)}`;
+            
+            setTimeout(() => {
+                const el = document.getElementById(containerId);
+                if (!el) return;
+                
+                let img = new Image();
+                let formatIndex = 0;
+
+                function tryNextFormat() {
+                    if (formatIndex >= imageFormats.length) {
+                        el.innerHTML = feature.render();
+                        return;
+                    }
+                    const ext = imageFormats[formatIndex++];
+                    img.src = `icons/${feature.id}.${ext}`;
+                }
+
+                img.onload = () => { el.innerHTML = `<img src="${img.src}" alt="${feature.name}">`; };
+                img.onerror = () => { tryNextFormat(); };
+                tryNextFormat();
+            }, 0);
+
+            return `<div id="${containerId}" class="symbol-box">${feature.render()}</div>`;
+        }
+
+        function getSelectedFeatures() {
+            const map = getCurrentMap();
+            const activeSet = new Set(map.activeFeatureIds || []);
+            return features.filter(f => activeSet.has(f.id));
+        }
+
+        function updateFeatureCounter() {
+            const map = getCurrentMap();
+            const count = (map.activeFeatureIds || []).length;
+            const badge = document.getElementById('counterBadge');
+            const genBtn = document.getElementById('generateBtn');
+
+            badge.innerText = `${count} / ${features.length} Selected`;
+
+            if (count >= 18) {
+                badge.className = 'counter-badge valid';
+                if (genBtn) genBtn.disabled = false;
+            } else {
+                badge.className = 'counter-badge invalid';
+                badge.innerText += ' (Min 18 Required)';
+                if (genBtn) genBtn.disabled = true;
+            }
+        }
+
+        function toggleFeature(id) {
+            const map = getCurrentMap();
+            let activeSet = new Set(map.activeFeatureIds || []);
+
+            if (activeSet.has(id)) {
+                activeSet.delete(id);
+            } else {
+                activeSet.add(id);
+            }
+
+            map.activeFeatureIds = Array.from(activeSet);
+            saveMaps();
+            
+            const card = document.getElementById(`selector-card-${id}`);
+            const checkbox = document.getElementById(`checkbox-${id}`);
+            if (card && checkbox) {
+                checkbox.checked = activeSet.has(id);
+                card.classList.toggle('selected', activeSet.has(id));
+            }
+
+            updateFeatureCounter();
+            generateCards();
+            randomizedGameplayPool = [];
+            updateGameplayView();
+        }
+
+        function selectAllFeatures(select) {
+            const map = getCurrentMap();
+            if (select) {
+                map.activeFeatureIds = features.map(f => f.id);
+            } else {
+                map.activeFeatureIds = [];
+            }
+            saveMaps();
+
+            features.forEach(feat => {
+                const card = document.getElementById(`selector-card-${feat.id}`);
+                const checkbox = document.getElementById(`checkbox-${feat.id}`);
+                if (card && checkbox) {
+                    checkbox.checked = select;
+                    card.classList.toggle('selected', select);
+                }
+            });
+
+            updateFeatureCounter();
+            generateCards();
+            randomizedGameplayPool = [];
+            updateGameplayView();
+        }
+
+        function resetGameProgress() {
+            const map = getCurrentMap();
+            map.revealedFeatureIds = [];
+            saveMaps();
+            renderFeatureSelector();
+            updateGameplayView();
+        }
+
+        function renderFeatureSelector() {
+            const map = getCurrentMap();
+            const activeSet = new Set(map.activeFeatureIds || []);
+            const revealedSet = new Set(map.revealedFeatureIds || []);
+            const grid = document.getElementById('featureSelectorGrid');
+            grid.innerHTML = '';
+
+            features.forEach(feat => {
+                const isSelected = activeSet.has(feat.id);
+                const isRevealed = revealedSet.has(feat.id);
+                const card = document.createElement('div');
+                card.id = `selector-card-${feat.id}`;
+                card.className = `feature-checkbox-card ${isSelected ? 'selected' : ''} ${isRevealed ? 'shown-in-game' : ''}`;
+
+                const topRow = document.createElement('div');
+                topRow.className = 'feature-top-row';
+                topRow.onclick = (e) => {
+                    if (e.target.tagName !== 'INPUT') {
+                        toggleFeature(feat.id);
+                    }
+                };
+
+                topRow.innerHTML = `
+                    <span class="game-status-pill">✓ Shown</span>
+                    <input type="checkbox" id="checkbox-${feat.id}" ${isSelected ? 'checked' : ''} onchange="toggleFeature('${feat.id}')">
+                    ${getSymbolHTML(feat)}
+                    <span style="font-size: 12px; font-weight: 600; flex-grow: 1;">${feat.name}</span>
+                `;
+
+                const gridRefDiv = document.createElement('div');
+                gridRefDiv.className = 'grid-ref-input-container';
+                const currentRef = (map.gridReferences && map.gridReferences[feat.id]) || '';
+                
+                if (feat.isLinear) {
+                    const currentRefEnd = (map.gridReferencesEnd && map.gridReferencesEnd[feat.id]) || '';
+                    gridRefDiv.style.flexDirection = 'column';
+                    gridRefDiv.style.alignItems = 'stretch';
+                    gridRefDiv.innerHTML = `
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <span style="width:36px;">Start:</span>
+                            <input type="text" value="${currentRef}" placeholder="e.g. SK 567 398" oninput="if(!getCurrentMap().gridReferences) getCurrentMap().gridReferences = {}; getCurrentMap().gridReferences['${feat.id}'] = this.value; saveMaps(); updateGameplayView();">
+                        </div>
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <span style="width:36px;">End:</span>
+                            <input type="text" value="${currentRefEnd}" placeholder="e.g. SK 589 412" oninput="if(!getCurrentMap().gridReferencesEnd) getCurrentMap().gridReferencesEnd = {}; getCurrentMap().gridReferencesEnd['${feat.id}'] = this.value; saveMaps(); updateGameplayView();">
+                        </div>
+                    `;
+                } else {
+                    gridRefDiv.innerHTML = `
+                        <span>Grid Ref:</span>
+                        <input type="text" value="${currentRef}" placeholder="e.g. SK 567 398" oninput="if(!getCurrentMap().gridReferences) getCurrentMap().gridReferences = {}; getCurrentMap().gridReferences['${feat.id}'] = this.value; saveMaps(); updateGameplayView();">
+                    `;
+                }
+
+                card.appendChild(topRow);
+                card.appendChild(gridRefDiv);
+                grid.appendChild(card);
+            });
+
+            updateFeatureCounter();
+        }
+
+        function markCurrentFeatureShown() {
+            if (randomizedGameplayPool.length === 0) return;
+            const currentFeat = randomizedGameplayPool[gameplayIndex];
+            const map = getCurrentMap();
+            if (!map.revealedFeatureIds) {
+                map.revealedFeatureIds = [];
+            }
+            if (!map.revealedFeatureIds.includes(currentFeat.id)) {
+                map.revealedFeatureIds.push(currentFeat.id);
+                saveMaps();
+            }
+        }
+
+        function updateGameplayView() {
+            const activePool = getSelectedFeatures();
+            const map = getCurrentMap();
+
+            if (activePool.length === 0) {
+                document.getElementById('gameplayProgressText').innerText = "No features selected";
+                document.getElementById('gameplayShownCountText').innerText = "0 Shown";
+                document.getElementById('gameplayGridRef').innerHTML = "------";
+                return;
+            }
+
+            if (randomizedGameplayPool.length !== activePool.length) {
+                randomizedGameplayPool = shuffle(activePool);
+                gameplayIndex = 0;
+            }
+
+            if (gameplayIndex >= randomizedGameplayPool.length) {
+                gameplayIndex = 0;
+            }
+
+            const currentFeat = randomizedGameplayPool[gameplayIndex];
+            const revealedSet = new Set(map.revealedFeatureIds || []);
+            const shownCount = randomizedGameplayPool.filter(f => revealedSet.has(f.id)).length;
+
+            document.getElementById('gameplayProgressText').innerText = `${map.name} — Feature ${gameplayIndex + 1} of ${randomizedGameplayPool.length} (Randomized)`;
+            document.getElementById('gameplayShownCountText').innerText = `${shownCount} of ${randomizedGameplayPool.length} Shown`;
+            
+            const rawGridRef = (map.gridReferences && map.gridReferences[currentFeat.id]) ? map.gridReferences[currentFeat.id].trim() : "";
+            
+            const gridRefBox = document.querySelector('.gameplay-grid-ref-box');
+            let existingLinearDiv = gridRefBox.querySelector('.gameplay-grid-ref-linear-container');
+            let standardRefDiv = document.getElementById('gameplayGridRef');
+
+            if (currentFeat.isLinear) {
+                const rawGridRefEnd = (map.gridReferencesEnd && map.gridReferencesEnd[currentFeat.id]) ? map.gridReferencesEnd[currentFeat.id].trim() : "";
+                
+                if (rawGridRef !== "" || rawGridRefEnd !== "") {
+                    standardRefDiv.style.display = 'none';
+                    if (!existingLinearDiv) {
+                        existingLinearDiv = document.createElement('div');
+                        existingLinearDiv.className = 'gameplay-grid-ref-linear-container';
+                        gridRefBox.appendChild(existingLinearDiv);
+                    }
+                    existingLinearDiv.innerHTML = `
+                        <div class="gameplay-grid-ref-linear-value">${rawGridRef !== "" ? rawGridRef : "------"}</div>
+                        <div class="gameplay-grid-ref-linear-value">${rawGridRefEnd !== "" ? rawGridRefEnd : "------"}</div>
+                    `;
+                } else {
+                    standardRefDiv.style.display = 'block';
+                    standardRefDiv.innerText = "------";
+                    if (existingLinearDiv) existingLinearDiv.remove();
+                }
+            } else {
+                standardRefDiv.style.display = 'block';
+                if (existingLinearDiv) existingLinearDiv.remove();
+                standardRefDiv.innerText = (rawGridRef !== "") ? rawGridRef : "------";
+            }
+
+            document.getElementById('prevFeatureBtn').disabled = (gameplayIndex === 0);
+            document.getElementById('nextFeatureBtn').disabled = (gameplayIndex === randomizedGameplayPool.length - 1);
+        }
+
+        function shuffleGameplayDeck() {
+            const activePool = getSelectedFeatures();
+            if (activePool.length === 0) return;
+            randomizedGameplayPool = shuffle(activePool);
+            gameplayIndex = 0;
+            updateGameplayView();
+        }
+
+        function changeGameplayIndex(direction) {
+            // Automatically mark current grid reference as called/shown before moving
+            markCurrentFeatureShown();
+
+            gameplayIndex += direction;
+            if (gameplayIndex < 0) gameplayIndex = 0;
+            if (gameplayIndex >= randomizedGameplayPool.length) gameplayIndex = randomizedGameplayPool.length - 1;
+            
+            updateGameplayView();
+            renderFeatureSelector();
+        }
+
+        function generateCards() {
+            const activePool = getSelectedFeatures();
+            if (activePool.length < 18) return;
+
+            const map = getCurrentMap();
+            const countInput = document.getElementById('cardCount');
+            const count = countInput ? (parseInt(countInput.value) || 42) : 42;
+            const container = document.getElementById('cardsContainer');
+            if (!container) return;
+            container.innerHTML = '';
+
+            for (let c = 1; c <= count; c += 3) {
+                const pageEl = document.createElement('div');
+                pageEl.className = 'print-page';
+
+                for (let offset = 0; offset < 3; offset++) {
+                    const cardNum = c + offset;
+                    if (cardNum > count) break;
+
+                    const cardFeatures = shuffle(activePool, cardNum * 777).slice(0, 18);
+                    const cardEl = document.createElement('div');
+                    cardEl.className = 'bingo-card';
+                    
+                    let gridHTML = '';
+                    cardFeatures.forEach(feat => {
+                        gridHTML += `
+                            <div class="cell">
+                                ${getSymbolHTML(feat)}
+                                <div class="feature-label">${feat.name}</div>
+                            </div>
+                        `;
+                    });
+
+                    cardEl.innerHTML = `
+                        <div class="card-header">
+                            <div class="card-top-bar">
+                                <div class="card-title">OS Bingo: ${map.name}</div>
+                                <div class="card-number">CARD ${cardNum.toString().padStart(2, '0')}</div>
+                            </div>
+                            <div class="scout-details">
+                                <div class="scout-field">
+                                    <span class="scout-label">Name:</span>
+                                    <div class="scout-line"></div>
+                                </div>
+                                <div class="scout-field">
+                                    <span class="scout-label">Patrol:</span>
+                                    <div class="scout-line"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bingo-grid">${gridHTML}</div>
+                    `;
+                    pageEl.appendChild(cardEl);
+                }
+                container.appendChild(pageEl);
+            }
+        }
+
+        function printBingoCards() {
+            document.body.classList.remove('printing-leader');
+            window.print();
+        }
+
+        function printLeaderSheet() {
+            document.body.classList.add('printing-leader');
+            setTimeout(() => {
+                window.print();
+                setTimeout(() => {
+                    document.body.classList.remove('printing-leader');
+                }, 500);
+            }, 50);
+        }
+
+        function switchTab(tabId, btn) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            btn.classList.add('active');
+
+            if (tabId === 'gameplayTab') {
+                updateGameplayView();
+            } else if (tabId === 'selectorTab') {
+                renderFeatureSelector();
+            }
+        }
+
+        window.onload = function() {
+            initDefaultMaps();
+            updateMapSelectorDropdown();
+            renderFeatureSelector();
+            generateCards();
+            updateGameplayView();
+        };
+    </script>
+</body>
+</html>
