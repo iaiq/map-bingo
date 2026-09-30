@@ -30,5 +30,5 @@ When you put feature data (grid references) into the app it uses "local-storage"
 
 You can include grid references for all the features and only select those which you want to appear on the bingo cards.
 The icons are all created as SVGs by Google Gemini it has done a better job with some than others.
-
+It is my intention to share some map files as a library, contributions from others would be welcome.
 
