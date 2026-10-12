@@ -17,7 +17,7 @@ When you put feature data (grid references) into the app it uses "local-storage"
 
 ## Basic Usage Instructions
 
-1. Download the app.
+1. Download the app (it has OS Explorer OL24 configured as an example).
 2. Use the "+ New Map" button to add the map you want to use, suggest you include the map number.
 3. Go to "Manage Maps" select the features you want to use and ensure any you don't want at deselected.
 4. Enter the appropriate grid references for the features. Once you have done this I suggest you use the "Export Map" option to save the map config as a file.
