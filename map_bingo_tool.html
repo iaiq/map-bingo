@@ -152,6 +152,11 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; }
 
+        /* Leader Sheet Container Print Styles */
+        .leader-sheet-container {
+            display: none;
+        }
+
         .selector-header-bar {
             background: white;
             padding: 15px 20px;
@@ -629,7 +634,62 @@
                 display: block !important;
             }
 
-            body:not(.printing-leader) .cards-container {
+            /* Printing Leader Sheet Only */
+            body.printing-leader header,
+            body.printing-leader .controls,
+            body.printing-leader .tabs,
+            body.printing-leader #cardsTab,
+            body.printing-leader #gameplayTab,
+            body.printing-leader .selector-header-bar {
+                display: none !important;
+            }
+
+            body.printing-leader #selectorTab {
+                display: block !important;
+                background: white !important;
+                padding: 0 !important;
+                box-shadow: none !important;
+            }
+
+            body.printing-leader .leader-sheet-container {
+                display: block !important;
+            }
+
+            body.printing-leader .feature-checkbox-card:not(.selected) {
+                display: none !important;
+            }
+
+            body.printing-leader .feature-checkbox-card {
+                break-inside: avoid;
+                page-break-inside: avoid;
+                border: 1px solid #000 !important;
+                background: #fff !important;
+                box-shadow: none !important;
+            }
+
+            body.printing-leader .feature-selector-grid {
+                display: grid !important;
+                grid-template-columns: repeat(3, 1fr) !important;
+                gap: 8px !important;
+                padding: 0 !important;
+                background: white !important;
+                box-shadow: none !important;
+            }
+
+            body.printing-leader input[type="checkbox"],
+            body.printing-leader .game-status-pill {
+                display: none !important;
+            }
+
+            body.printing-leader .grid-ref-input-container input {
+                border: none !important;
+                border-bottom: 1px solid #000 !important;
+                background: transparent !important;
+                padding: 2px !important;
+                font-weight: bold;
+            }
+
+            body.printing-leader .cards-container {
                 gap: 0;
                 display: block;
             }
@@ -641,8 +701,9 @@
                 display: flex;
                 flex-direction: column;
                 justify-content: space-between;
-                width: 198mm;
-                height: 284mm;
+                width: 100%;
+                height: 100vh;
+                max-height: 287mm;
                 page-break-after: always;
                 break-after: page;
                 box-shadow: none;
@@ -653,30 +714,32 @@
             body:not(.printing-leader) .bingo-card {
                 border: 1.5px solid #000;
                 border-radius: 0;
-                padding: 4px 6px;
-                height: 86mm;
-                max-height: 86mm;
+                padding: 3mm 4mm;
+                height: 31%;
+                max-height: 31%;
                 box-sizing: border-box;
                 display: flex;
                 flex-direction: column;
                 justify-content: space-between;
                 overflow: hidden;
+                break-inside: avoid;
+                page-break-inside: avoid;
             }
 
             body:not(.printing-leader) .card-header {
                 border-bottom: 1px solid #000;
-                padding-bottom: 2px;
-                margin-bottom: 2px;
-                gap: 2px;
+                padding-bottom: 1.5mm;
+                margin-bottom: 1.5mm;
+                gap: 1mm;
             }
 
             body:not(.printing-leader) .card-title {
-                font-size: 11px;
+                font-size: 10pt;
                 color: #000;
             }
 
             body:not(.printing-leader) .card-number {
-                font-size: 9px;
+                font-size: 8.5pt;
                 padding: 0px 4px;
                 background: none;
                 border: 1px solid #000;
@@ -684,21 +747,20 @@
             }
 
             body:not(.printing-leader) .scout-details {
-                font-size: 9.5px;
+                font-size: 8.5pt;
             }
 
             body:not(.printing-leader) .scout-line {
                 border-bottom: 1px solid #000;
-                height: 10px;
+                height: 8px;
             }
 
             body:not(.printing-leader) .bingo-grid {
                 display: grid;
                 grid-template-columns: repeat(6, 1fr);
                 grid-template-rows: repeat(3, 1fr);
-                gap: 2px;
-                height: 56mm;
-                max-height: 56mm;
+                gap: 1.5mm;
+                flex-grow: 1;
                 box-sizing: border-box;
             }
 
@@ -730,8 +792,8 @@
             }
 
             body:not(.printing-leader) .feature-label {
-                font-size: 6.5px;
-                line-height: 0.9;
+                font-size: 6pt;
+                line-height: 0.95;
                 height: 42%;
                 margin-top: 1px;
                 display: flex;
@@ -761,7 +823,7 @@
                 <button onclick="openNewMapModal()">+ New Map</button>
                 <div class="map-action-btns">
                     <button class="secondary" onclick="exportCurrentMap()" title="Export current map as JSON">Export Map</button>
-                    <button class="secondary" onclick="triggerImportMap()" title="Import map from JSON">Import Map</button>
+                    <button class="secondary" onclick="triggerImportMap()" title="Import map from JSON file">Import File</button>
                     <button class="danger" onclick="deleteCurrentMap()" id="deleteMapBtn" style="padding: 6px 10px;">Delete</button>
                 </div>
             </div>
@@ -780,7 +842,7 @@
         <div class="controls">
             <div class="control-group">
                 <label for="cardCount">Total Cards:</label>
-                <input type="number" id="cardCount" value="42" min="3" max="120" step="3">
+                <input type="number" id="cardCount" value="9" min="3" max="120" step="3">
             </div>
             <button id="generateBtn" onclick="generateCards()">Regenerate Cards</button>
             <button class="secondary" onclick="printBingoCards()">Print Bingo Cards</button>
@@ -802,6 +864,12 @@
                 <button onclick="printLeaderSheet()">Print Leader Sheet</button>
             </div>
         </div>
+        
+        <div class="leader-sheet-container" id="leaderSheetHeader" style="margin-bottom: 15px; text-align: center; display:none;">
+            <h2 id="printLeaderTitle" style="font-size: 20px; font-weight: bold;">OS Map Feature Leader Call Sheet</h2>
+            <p id="printLeaderSub" style="font-size: 13px; color: #555;">Selected Active Features & Grid References</p>
+        </div>
+
         <div id="featureSelectorGrid" class="feature-selector-grid"></div>
     </div>
 
@@ -916,11 +984,40 @@
         ];
 
         let mapsData = {};
-        let currentMapId = 'default_map';
+        let currentMapId = 'os_ol24';
         let gameplayIndex = 0;
         let randomizedGameplayPool = [];
 
         function initDefaultMaps() {
+            const osOl24Data = {
+                name: "OS OL24",
+                activeFeatureIds: [
+                    "post_office", "public_telephone", "youth_hostel", "church_with_tower", "footbridge", "railway_station", 
+                    "golf_course", "public_house", "fishing", "other_tourist_feature", "nature_reserve", "english_heritage", 
+                    "chapel", "church_with_spire", "wind_turbine", "triangulation_pillar", "cairn", "slope", "tunnel", 
+                    "coniferous_wood", "non_coniferous_wood", "water", "island", "mast", "bunk_house", "clubhouse", 
+                    "well", "spring", "craft_centre", "picnic_site", "tumulus", "telephone_exchange", "wind_pump", 
+                    "weirs", "boundary_stone", "mile_post", "waterfall", "hotel", "moat", "stone_circle", "marsh", 
+                    "cattle_grid", "valley"
+                ],
+                gridReferences: {
+                    "post_office": "276628", "public_telephone": "235506", "youth_hostel": "152733", "church_with_tower": "222610", 
+                    "footbridge": "287698", "railway_station": "272627", "golf_course": "316621", "public_house": "339639", 
+                    "fishing": "339758", "other_tourist_feature": "225788", "nature_reserve": "167731", "english_heritage": "163636", 
+                    "chapel": "300 604", "church_with_spire": "210 504", "slope": "334724", "tunnel": "277794", "coniferous_wood": "213755", 
+                    "non_coniferous_wood": "230667", "water": "217637", "island": "259529", "mast": "232744", "bunk_house": "200780", 
+                    "clubhouse": "223692", "well": "209 587", "spring": "232579", "craft_centre": "176521", "picnic_site": "168504", 
+                    "tumulus": "214574", "telephone_exchange": "322 569", "wind_pump": "319505", "weirs": "180657", "boundary_stone": "161794", 
+                    "mile_post": "167582", "waterfall": "321677", "hotel": "257721", "moat": "322779", "stone_circle": "283773", 
+                    "marsh": "264752", "cattle_grid": "199728", "wind_turbine": "246543", "triangulation_pillar": "268556", 
+                    "cairn": "289687", "valley": "210613"
+                },
+                gridReferencesEnd: {
+                    "valley": "202596"
+                },
+                revealedFeatureIds: []
+            };
+
             try {
                 const saved = localStorage.getItem('os_bingo_multi_maps');
                 if (saved) {
@@ -930,20 +1027,13 @@
                 console.error("Error loading maps", e);
             }
 
-            if (!mapsData || Object.keys(mapsData).length === 0) {
-                const defaultActive = features.filter(f => f.defaultSelected !== false).map(f => f.id);
-                mapsData = {
-                    'default_map': {
-                        name: 'Default Map (Area 1)',
-                        activeFeatureIds: defaultActive,
-                        gridReferences: {},
-                        gridReferencesEnd: {},
-                        revealedFeatureIds: []
-                    }
-                };
-                currentMapId = 'default_map';
+            // Always ensure the newly supplied OS OL24 map exists or can be restored
+            if (!mapsData || Object.keys(mapsData).length === 0 || !mapsData['os_ol24']) {
+                if (!mapsData) mapsData = {};
+                mapsData['os_ol24'] = osOl24Data;
+                currentMapId = 'os_ol24';
                 saveMaps();
-            } else {
+            } else if (!currentMapId || !mapsData[currentMapId]) {
                 currentMapId = Object.keys(mapsData)[0];
             }
         }
@@ -1017,57 +1107,36 @@
             document.getElementById('newMapModal').classList.remove('active');
         }
 
-        function createNewMap() {
-            const nameInput = document.getElementById('newMapNameInput');
-            const name = nameInput.value.trim() || `Map Area ${Object.keys(mapsData).length + 1}`;
-            const newId = 'map_' + Date.now();
+        function processImportedMapObject(parsed) {
+            let mapObj = null;
 
-            const defaultActive = features.filter(f => f.defaultSelected !== false).map(f => f.id);
+            if (parsed && parsed.type === "os_bingo_map_config" && parsed.map) {
+                mapObj = parsed.map;
+            } else if (parsed && parsed.name && Array.isArray(parsed.activeFeatureIds)) {
+                mapObj = parsed;
+            } else if (parsed && typeof parsed === 'object') {
+                const keys = Object.keys(parsed);
+                if (keys.length > 0 && parsed[keys[0]].name) {
+                    mapObj = parsed[keys[0]];
+                }
+            }
+
+            if (!mapObj || !mapObj.name) {
+                alert("Invalid map configuration object. Must contain 'name' and 'activeFeatureIds'.");
+                return;
+            }
+
+            const newId = 'map_' + Date.now();
             mapsData[newId] = {
-                name: name,
-                activeFeatureIds: defaultActive,
-                gridReferences: {},
-                revealedFeatureIds: []
+                name: mapObj.name + (mapObj.name.includes('(Imported)') ? '' : ' (Imported)'),
+                activeFeatureIds: Array.isArray(mapObj.activeFeatureIds) ? mapObj.activeFeatureIds : features.map(f => f.id),
+                gridReferences: (mapObj.gridReferences && typeof mapObj.gridReferences === 'object') ? mapObj.gridReferences : {},
+                gridReferencesEnd: (mapObj.gridReferencesEnd && typeof mapObj.gridReferencesEnd === 'object') ? mapObj.gridReferencesEnd : {},
+                revealedFeatureIds: Array.isArray(mapObj.revealedFeatureIds) ? mapObj.revealedFeatureIds : []
             };
 
             saveMaps();
-            closeNewMapModal();
             switchMap(newId);
-        }
-
-        function deleteCurrentMap() {
-            if (Object.keys(mapsData).length <= 1) return;
-            const currentMap = getCurrentMap();
-            if (confirm(`Are you sure you want to delete "${currentMap.name}"?`)) {
-                delete mapsData[currentMapId];
-                currentMapId = Object.keys(mapsData)[0];
-                saveMaps();
-                updateMapSelectorDropdown();
-                renderFeatureSelector();
-                generateCards();
-                updateGameplayView();
-            }
-        }
-
-        function exportCurrentMap() {
-            const currentMap = getCurrentMap();
-            const exportData = {
-                version: "1.0",
-                type: "os_bingo_map_config",
-                map: currentMap
-            };
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportData, null, 2));
-            const downloadAnchor = document.createElement('a');
-            downloadAnchor.setAttribute("href", dataStr);
-            downloadAnchor.setAttribute("download", `${currentMap.name.toLowerCase().replace(/[^a-z0-9]/g, '_')}_bingo_config.json`);
-            document.body.appendChild(downloadAnchor);
-            downloadAnchor.click();
-            downloadAnchor.remove();
-        }
-
-        function triggerImportMap() {
-            document.getElementById('importFileinput').value = '';
-            document.getElementById('importFileinput').click();
         }
 
         function handleMapImport(event) {
@@ -1078,35 +1147,7 @@
             reader.onload = function(e) {
                 try {
                     const parsed = JSON.parse(e.target.result);
-                    let mapObj = null;
-
-                    if (parsed && parsed.type === "os_bingo_map_config" && parsed.map) {
-                        mapObj = parsed.map;
-                    } else if (parsed && parsed.name && Array.isArray(parsed.activeFeatureIds)) {
-                        mapObj = parsed;
-                    } else if (parsed && typeof parsed === 'object') {
-                        const keys = Object.keys(parsed);
-                        if (keys.length > 0 && parsed[keys[0]].name) {
-                            mapObj = parsed[keys[0]];
-                        }
-                    }
-
-                    if (!mapObj || !mapObj.name) {
-                        alert("Invalid map configuration JSON file.");
-                        return;
-                    }
-
-                    const newId = 'map_' + Date.now();
-                    mapsData[newId] = {
-                        name: mapObj.name + " (Imported)",
-                        activeFeatureIds: Array.isArray(mapObj.activeFeatureIds) ? mapObj.activeFeatureIds : features.map(f => f.id),
-                        gridReferences: (mapObj.gridReferences && typeof mapObj.gridReferences === 'object') ? mapObj.gridReferences : {},
-                        gridReferencesEnd: (mapObj.gridReferencesEnd && typeof mapObj.gridReferencesEnd === 'object') ? mapObj.gridReferencesEnd : {},
-                        revealedFeatureIds: Array.isArray(mapObj.revealedFeatureIds) ? mapObj.revealedFeatureIds : []
-                    };
-
-                    saveMaps();
-                    switchMap(newId);
+                    processImportedMapObject(parsed);
                 } catch (err) {
                     console.error(err);
                     alert("Error parsing JSON file. Please ensure it is a valid map configuration.");
@@ -1404,7 +1445,7 @@
 
             const map = getCurrentMap();
             const countInput = document.getElementById('cardCount');
-            const count = countInput ? (parseInt(countInput.value) || 42) : 42;
+            const count = countInput ? (parseInt(countInput.value) || 9) : 9;
             const container = document.getElementById('cardsContainer');
             if (!container) return;
             container.innerHTML = '';
@@ -1463,10 +1504,15 @@
 
         function printLeaderSheet() {
             document.body.classList.add('printing-leader');
+            const map = getCurrentMap();
+            document.getElementById('printLeaderTitle').innerText = `${map.name} - Leader Call Sheet`;
+            document.getElementById('leaderSheetHeader').style.display = 'block';
+
             setTimeout(() => {
                 window.print();
                 setTimeout(() => {
                     document.body.classList.remove('printing-leader');
+                    document.getElementById('leaderSheetHeader').style.display = 'none';
                 }, 500);
             }, 50);
         }
