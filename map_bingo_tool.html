@@ -1107,6 +1107,74 @@
             document.getElementById('newMapModal').classList.remove('active');
         }
 
+        function createNewMap() {
+            const input = document.getElementById('newMapNameInput');
+            const name = input ? input.value.trim() : '';
+            if (!name) {
+                alert('Please enter a valid map name.');
+                return;
+            }
+
+            const newId = 'map_' + Date.now();
+            mapsData[newId] = {
+                name: name,
+                activeFeatureIds: features.map(f => f.id),
+                gridReferences: {},
+                gridReferencesEnd: {},
+                revealedFeatureIds: []
+            };
+
+            saveMaps();
+            closeNewMapModal();
+            switchMap(newId);
+        }
+
+        function deleteCurrentMap() {
+            const keys = Object.keys(mapsData);
+            if (keys.length <= 1) {
+                alert('You must have at least one map.');
+                return;
+            }
+
+            const currentMap = getCurrentMap();
+            if (confirm(`Are you sure you want to delete "${currentMap.name}"?`)) {
+                delete mapsData[currentMapId];
+                const remainingKeys = Object.keys(mapsData);
+                currentMapId = remainingKeys[0];
+                saveMaps();
+                updateMapSelectorDropdown();
+                renderFeatureSelector();
+                generateCards();
+                updateGameplayView();
+            }
+        }
+
+        function exportCurrentMap() {
+            const currentMap = getCurrentMap();
+            const exportData = {
+                type: "os_bingo_map_config",
+                version: "1.0",
+                exportedAt: new Date().toISOString(),
+                map: currentMap
+            };
+
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportData, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `${currentMap.name.toLowerCase().replace(/[^a-z0-9]/g, '_')}_bingo_map.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        function triggerImportMap() {
+            const fileInput = document.getElementById('importFileinput');
+            if (fileInput) {
+                fileInput.value = '';
+                fileInput.click();
+            }
+        }
+
         function processImportedMapObject(parsed) {
             let mapObj = null;
 
